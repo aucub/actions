@@ -1,0 +1,28 @@
+name: Gemini-OpenAI-Proxy Deploy
+
+on:
+  schedule:
+    - cron: "0 18 * * 3"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4.1.3
+        with:
+          repository: "zuisong/gemini-openai-proxy"
+      - uses: denoland/setup-deno@v1.1.4
+        with:
+          deno-version: vx.x.x
+      - run: deno install -qArf https://deno.land/x/deploy/deployctl.ts
+      - run: deployctl deploy --token=$DENO_DEPLOY_TOKEN --project=gemini-openai-proxy-$GITHUB_ACTOR --prod --region=us --entrypoint=dist/main_deno.mjs
+        env:
+          DENO_DEPLOY_TOKEN: ${{ secrets.DENO_DEPLOY_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
