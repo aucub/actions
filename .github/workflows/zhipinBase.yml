@@ -58,7 +58,7 @@ jobs:
       - name: Set execute permissions
         run: |
           sudo chmod +x /opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/seleniumbase/drivers/uc_driver
-      - uses: robinraju/release-downloader@v1.9
+      - uses: robinraju/release-downloader@v1.10
         continue-on-error: true
         with:
           repository: ${{ env.REPOSITORY }}

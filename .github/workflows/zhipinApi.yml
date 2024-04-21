@@ -28,7 +28,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel setuptools
           pip install -r zhipin/requirements.txt
-      - uses: robinraju/release-downloader@v1.9
+      - uses: robinraju/release-downloader@v1.10
         continue-on-error: true
         with:
           repository: ${{ env.REPOSITORY }}
