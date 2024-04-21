@@ -84,7 +84,7 @@ jobs:
         run: |
           cd zhipin
           pytest zhipinBase.py --uc --browser=chrome --headless2 ${{ inputs.args }} --chromium-arg="--proxy-server=$PROXY_URL"  -v -s --junit-xml=junit/test-results.xml --do-not-track
-      - uses: actions/upload-artifact@v4.3.1
+      - uses: actions/upload-artifact@v4.3.2
         if: always()
         with:
           path: |
