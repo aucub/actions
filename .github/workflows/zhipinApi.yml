@@ -1,0 +1,69 @@
+name: zhipinApi
+
+on:
+  workflow_dispatch:
+
+env:
+  REPOSITORY: "${{ github.actor }}/no-job"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4.1.3
+        with:
+          repository: ${{ env.REPOSITORY }}
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-wqy-zenhei
+          sudo apt-get install -y language-pack-zh-hans
+          sudo locale-gen zh_CN.UTF-8
+          sudo update-locale LANG=zh_CN.UTF-8
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          pip install -r zhipin/requirements.txt
+      - uses: robinraju/release-downloader@v1.10
+        continue-on-error: true
+        with:
+          repository: ${{ env.REPOSITORY }}
+          tag: "zhipin"
+          fileName: "*.json"
+          out-file-path: "zhipin"
+      - name: Run zhipinApi.py
+        env:
+          STATE: ${{ vars.STATE }}
+          CONFIG_URL: ${{ vars.CONFIG_URL }}
+          DB_URL: ${{ secrets.DB_URL }}
+          PROXY_URL: ${{ vars.PROXY_URL }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          CLIP_URL: ${{ secrets.CLIP_URL }}
+        run: |
+          cd zhipin
+          python zhipinApi.py
+      - uses: actions/upload-artifact@v4.3.2
+        if: always()
+        with:
+          path: |
+            zhipin/*.txt
+            zhipin/*.json
+            zhipin/*.xml
+            zhipin/junit/*
+            zhipin/latest_logs/*/*
+      - uses: ncipollo/release-action@v1
+        if: always()
+        with:
+          repo: ${{ env.REPOSITORY }}
+          artifacts: "zhipin/*.json"
+          allowUpdates: true
+          replacesArtifacts: true
+          tag: zhipin
+          prerelease: true
