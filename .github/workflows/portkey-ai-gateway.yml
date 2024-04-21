@@ -1,8 +1,8 @@
 name: Portkey-AI-Gateway Deploy
 
 on:
-  # schedule:
-  #   - cron: "0 18 * * 3"
+  schedule:
+    - cron: "0 18 * * 3"
   workflow_dispatch:
 
 jobs:
