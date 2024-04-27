@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy
     steps:
-      - uses: actions/checkout@v4.1.3
+      - uses: actions/checkout@v4.1.4
         with:
           repository: "Portkey-AI/gateway"
       - name: Deploy
