@@ -2,7 +2,7 @@ name: paste-worker
 
 on:
   schedule:
-    - cron: "0 18 * * 3"
+    - cron: "0 0 1 * *"
   workflow_dispatch:
 
 jobs:
