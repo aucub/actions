@@ -1,8 +1,8 @@
-name: zhipinBase
+name: zhipin
 
 on:
-  # schedule:
-  #   - cron: "0 0,5,10,15,20 * * *"
+  schedule:
+    - cron: "0 0,6,12,18 * * *"
   workflow_dispatch:
     inputs:
       args:
@@ -12,7 +12,7 @@ on:
         type: string
 
 env:
-  REPOSITORY: "${{ github.actor }}/no-job"
+  REPOSITORY: "no-job"
 
 jobs:
   build:
@@ -21,7 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4.1.4
         with:
-          repository: ${{ env.REPOSITORY }}
+          repository: "${{ github.actor }}/${{ env.REPOSITORY }}"
+          token: ${{ secrets.PAT }}
       - run: |
           sudo apt-get update
           sudo apt-get install -y fonts-wqy-zenhei
@@ -31,7 +32,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: 3.12
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip wheel setuptools
@@ -55,41 +56,38 @@ jobs:
         run: |
           echo "def test_2(): pass" > nothing2.py
           nosetests nothing2.py
-      - name: Set execute permissions
-        run: |
-          sudo chmod +x /opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/seleniumbase/drivers/uc_driver
       - uses: robinraju/release-downloader@v1.10
         continue-on-error: true
         with:
-          repository: ${{ env.REPOSITORY }}
+          repository: "${{ github.actor }}/${{ env.REPOSITORY }}"
           tag: "zhipin"
           fileName: "*.json"
           out-file-path: "zhipin"
+          token: ${{ secrets.PAT }}
       - run: |
           chmod +x sh/wireguard.sh
           sudo bash sh/wireguard.sh
         if: ${{ !vars.PROXY_URL }}
-      - name: Run pytest zhipinBase.py
+      - name: Run pytest
         env:
           STATE: ${{ vars.STATE }}
           CONFIG_URL: ${{ vars.CONFIG_URL }}
           DB_URL: ${{ secrets.DB_URL }}
           PROXY_URL: ${{ vars.PROXY_URL }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          CLIP_URL: ${{ secrets.CLIP_URL }}
           SAVED_COOKIES: ${{ secrets.SAVED_COOKIES }}
         run: |
           cd zhipin
-          pytest zhipinBase.py --uc --browser=chrome --headless2 ${{ inputs.args }} --chromium-arg="--proxy-server=$PROXY_URL"  -v -s --junit-xml=junit/test-results.xml --do-not-track
+          pytest zhipin_sb.py --uc --browser=chrome --headless ${{ inputs.args }} --chromium-arg="--proxy-server=$PROXY_URL"  -v -s --junit-xml=junit/test-results.xml --do-not-track --uc-cdp-events --log-cdp
       - uses: actions/upload-artifact@v4.3.3
         if: always()
         with:
           path: |
             zhipin/*.txt
+            zhipin/*.log
             zhipin/*.json
+            zhipin/*/*.jsonl
             zhipin/*.xml
             zhipin/junit/*
             zhipin/latest_logs/*/*
@@ -102,3 +100,4 @@ jobs:
           replacesArtifacts: true
           tag: zhipin
           prerelease: true
+          token: ${{ secrets.PAT }}
