@@ -79,12 +79,13 @@ jobs:
           SAVED_COOKIES: ${{ secrets.SAVED_COOKIES }}
         run: |
           cd zhipin
-          pytest zhipin_sb.py --uc --browser=chrome --headless2 ${{ inputs.args }} --chromium-arg="--proxy-server=$PROXY_URL"  -v -s --junit-xml=junit/test-results.xml --do-not-track --uc-cdp-events --log-cdp
+          pytest zhipin_sb.py --uc --browser=chrome --headless ${{ inputs.args }} --chromium-arg="--proxy-server=$PROXY_URL"  -v -s --junit-xml=junit/test-results.xml --do-not-track --uc-cdp-events --log-cdp
       - uses: actions/upload-artifact@v4.3.3
         if: always()
         with:
           path: |
             zhipin/*.txt
+            zhipin/*.log
             zhipin/*.json
             zhipin/*/*.jsonl
             zhipin/*.xml
