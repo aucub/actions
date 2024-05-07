@@ -1,4 +1,4 @@
-name: Portkey-AI-Gateway Deploy
+name: Deploy Portkey-AI-Gateway
 
 on:
   schedule:
@@ -8,13 +8,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Deploy
     steps:
-      - uses: actions/checkout@v4.1.4
+      - uses: actions/checkout@v4
         with:
           repository: "Portkey-AI/gateway"
-      - name: Deploy
-        uses: cloudflare/wrangler-action@v3.5.0
+      - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

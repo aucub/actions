@@ -17,16 +17,14 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4.1.4
+      - uses: actions/checkout@v4
         with:
           repository: "${{ github.actor }}/${{ env.REPOSITORY }}"
           token: ${{ secrets.PAT }}
       - run: |
           sudo apt-get update
-          sudo apt-get install -y fonts-wqy-zenhei
-          sudo apt-get install -y language-pack-zh-hans
+          sudo apt-get install -y fonts-wqy-zenhei language-pack-zh-hans
           sudo locale-gen zh_CN.UTF-8
           sudo update-locale LANG=zh_CN.UTF-8
       - name: Set up Python
@@ -65,7 +63,7 @@ jobs:
           out-file-path: "zhipin"
           token: ${{ secrets.PAT }}
       - run: |
-          chmod +x sh/wireguard.sh
+          sudo chmod +x sh/wireguard.sh
           sudo bash sh/wireguard.sh
         if: ${{ !vars.PROXY_URL }}
       - name: Run pytest
@@ -80,7 +78,7 @@ jobs:
         run: |
           cd zhipin
           pytest zhipin_sb.py --uc --browser=chrome --headless ${{ inputs.args }} --chromium-arg="--proxy-server=$PROXY_URL"  -v -s --junit-xml=junit/test-results.xml --do-not-track --uc-cdp-events --log-cdp
-      - uses: actions/upload-artifact@v4.3.3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           path: |
