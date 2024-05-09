@@ -16,7 +16,7 @@ jobs:
           token: ${{ secrets.PAT }}
       - run: |
           sudo apt-get update
-          sudo apt-get install -y fonts-wqy-zenhei language-pack-zh-hans
+          sudo apt-get install -y fonts-noto-cjk fonts-noto-cjk-extra language-pack-zh-hans
           sudo locale-gen zh_CN.UTF-8
           sudo update-locale LANG=zh_CN.UTF-8
       - name: Set up Python
