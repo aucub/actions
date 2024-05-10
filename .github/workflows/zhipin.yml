@@ -2,7 +2,7 @@ name: zhipin
 
 on:
   schedule:
-    - cron: "0 0,4,8,12,16,20 * * *"
+    - cron: "0 0,6,12,18 * * *"
   workflow_dispatch:
     inputs:
       args:
@@ -66,6 +66,7 @@ jobs:
           sudo chmod +x sh/wireguard.sh
           sudo bash sh/wireguard.sh
         if: ${{ !vars.PROXY_URL }}
+      - run: sudo cat zhipin/tool/hosts >> /etc/hosts
       - name: Run pytest
         env:
           STATE: ${{ vars.STATE }}
@@ -77,7 +78,7 @@ jobs:
           SAVED_COOKIES: ${{ secrets.SAVED_COOKIES }}
         run: |
           cd zhipin
-          pytest zhipin_sb.py --locale=zh-CN --browser=chrome --uc --disable-features="WebRTC,Translate" -v -s --junit-xml=junit/test-results.xml --do-not-track --ad-block --enable-3d-apis --incognito --window-size=1920,1080 --maximize --uc-cdp-events --log-cdp --chromium-arg="--timezone-override=Asia/Shanghai --block-third-party-cookies --disable-dev-shm-usage --disable-infobars --enable-features=WebRtcHideLocalIpsWithMdns" --headless2 --proxy=$PROXY_URL ${{ inputs.args }}
+          PYTEST_ADDOPTS="--proxy=$PROXY_URL ${{ inputs.args }}" make query
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -58,6 +58,7 @@ jobs:
           sudo chmod +x sh/wireguard.sh
           sudo bash sh/wireguard.sh
         if: ${{ !vars.PROXY_URL }}
+      - run: sudo cat zhipin/tool/hosts >> /etc/hosts
       - name: Run pytest
         env:
           DB_URL: ${{ secrets.DB_URL }}
