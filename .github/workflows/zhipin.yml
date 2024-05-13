@@ -10,6 +10,11 @@ on:
         required: false
         default: "    "
         type: string
+      manual:
+        description: "Use manual"
+        required: false
+        default: false
+        type: boolean
 
 env:
   REPOSITORY: "no-job"
@@ -68,19 +73,30 @@ jobs:
         if: ${{ !vars.PROXY_URL }}
       - run: sudo cat zhipin/tool/hosts >> /etc/hosts
       - name: Run pytest
+        if: ${{ !inputs.manual }}
         env:
           STATE: ${{ vars.STATE }}
           CONFIG_URL: ${{ vars.CONFIG_URL }}
           DB_URL: ${{ secrets.DB_URL }}
-          PROXY_URL: ${{ vars.PROXY_URL }}
+          HTTP_PROXY: ${{ vars.HTTP_PROXY }}
           OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SAVED_COOKIES: ${{ secrets.SAVED_COOKIES }}
         run: |
           cd zhipin
-          PYTEST_ADDOPTS="--proxy=$PROXY_URL ${{ inputs.args }}" make query
+          PYTEST_ADDOPTS="--proxy=$HTTP_PROXY ${{ inputs.args }}" make query
+      - name: Run pytest manual
+        if: ${{ inputs.manual }}
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SAVED_COOKIES: ${{ secrets.SAVED_COOKIES }}
+        run: |
+          cd zhipin
+          curl -sSf https://sshx.io/get | sh -s run
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: ${{ !inputs.manual }}
         with:
           path: |
             zhipin/*.txt
@@ -91,7 +107,7 @@ jobs:
             zhipin/junit/*
             zhipin/latest_logs/*/*
       - uses: ncipollo/release-action@v1
-        if: always()
+        if: ${{ !inputs.manual }}
         with:
           repo: ${{ env.REPOSITORY }}
           artifacts: "zhipin/*.json"
