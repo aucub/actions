@@ -5,10 +5,10 @@ on:
     - cron: "0 0,6,12,18 * * *"
   workflow_dispatch:
     inputs:
-      args:
-        description: "Use args"
+      proxy:
+        description: "Use proxy"
         required: false
-        default: "    "
+        default: ""
         type: string
       manual:
         description: "Use manual"
@@ -43,22 +43,6 @@ jobs:
       - name: Install Chrome
         run: |
           sudo apt install google-chrome-stable
-      - name: Check the console scripts interface
-        run: |
-          seleniumbase
-          sbase
-      - name: Install chromedriver
-        run: |
-          seleniumbase install chromedriver
-          seleniumbase install uc_driver
-      - name: Make sure pytest is working
-        run: |
-          echo "def test_1(): pass" > nothing.py
-          pytest nothing.py
-      - name: Make sure nosetests is working
-        run: |
-          echo "def test_2(): pass" > nothing2.py
-          nosetests nothing2.py
       - uses: robinraju/release-downloader@v1.10
         continue-on-error: true
         with:
@@ -70,25 +54,28 @@ jobs:
       - run: |
           sudo chmod +x sh/wireguard.sh
           sudo bash sh/wireguard.sh
-        if: ${{ !vars.PROXY_URL }}
+        if: ${{ !inputs.proxy }}
       - run: sudo cat zhipin/tool/hosts >> /etc/hosts
-      - name: Run pytest
+      - name: Run
         if: ${{ !inputs.manual }}
         env:
           STATE: ${{ vars.STATE }}
           CONFIG_URL: ${{ vars.CONFIG_URL }}
-          DB_URL: ${{ secrets.DB_URL }}
-          HTTP_PROXY: ${{ vars.HTTP_PROXY }}
+          MYSQL_URL: ${{ secrets.MYSQL_URL }}
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+          PROXY: ${{ inputs.proxy }}
           OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SAVED_COOKIES: ${{ secrets.SAVED_COOKIES }}
         run: |
           cd zhipin
-          PYTEST_ADDOPTS="--proxy=$HTTP_PROXY ${{ inputs.args }}" make query
-      - name: Run pytest manual
+          python zhipinDP.py
+      - name: Run manual
         if: ${{ inputs.manual }}
         env:
-          DB_URL: ${{ secrets.DB_URL }}
+          MYSQL_URL: ${{ secrets.MYSQL_URL }}
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+          PROXY: ${{ inputs.proxy }}
           OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SAVED_COOKIES: ${{ secrets.SAVED_COOKIES }}
@@ -103,9 +90,6 @@ jobs:
             zhipin/*.log
             zhipin/*.json
             zhipin/*/*.jsonl
-            zhipin/*.xml
-            zhipin/junit/*
-            zhipin/latest_logs/*/*
       - uses: ncipollo/release-action@v1
         if: ${{ !inputs.manual }}
         with:
