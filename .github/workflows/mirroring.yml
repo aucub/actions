@@ -1,4 +1,4 @@
-name: Mirroring
+name: mirroring
 
 permissions: read-all
 
@@ -13,8 +13,7 @@ jobs:
     outputs:
       MIRRORING_REPO: ${{ steps.get_repos.outputs.result }}
     steps:
-      - name: Get all repositories
-        id: get_repos
+      - id: get_repos
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.PAT }}
@@ -37,7 +36,7 @@ jobs:
       - run: |
           git lfs install
           git config --global push.autoSetupRemote true
-      - uses: actions/checkout@v4.1.4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           repository: "${{ github.actor }}/${{ matrix.repo }}"

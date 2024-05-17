@@ -1,4 +1,4 @@
-name: Gemini-OpenAI-Proxy Deploy
+name: Deploy Gemini-OpenAI-Proxy
 
 on:
   schedule:
@@ -8,17 +8,14 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     permissions:
       id-token: write
       contents: read
-
     steps:
-      - name: Clone repository
-        uses: actions/checkout@v4.1.4
+      - uses: actions/checkout@v4
         with:
           repository: "zuisong/gemini-openai-proxy"
-      - uses: denoland/setup-deno@v1.1.4
+      - uses: denoland/setup-deno@v1
         with:
           deno-version: vx.x.x
       - run: deno install -qArf https://deno.land/x/deploy/deployctl.ts
