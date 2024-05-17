@@ -1,4 +1,4 @@
-name: Cloudfalre Worker Deploy
+name: Deploy go-proxy-bingai
 on:
   workflow_dispatch:
 
