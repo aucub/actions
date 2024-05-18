@@ -43,14 +43,14 @@ jobs:
         run: |
           npx @cloudflare/next-on-pages
 
-      - name: Deploy using Terraform
-        continue-on-error: true
-        run: |
-          terraform init
-          terraform apply -auto-approve -input=false
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          TF_VAR_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # - name: Deploy using Terraform
+      #   continue-on-error: true
+      #   run: |
+      #     terraform init
+      #     terraform apply -auto-approve -input=false
+      #   env:
+      #     CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      #     TF_VAR_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Upload worker
         run: |
