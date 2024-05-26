@@ -1,14 +1,18 @@
+import os
 import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # GitHub 个人访问令牌
-TOKEN = ""
+GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 # GitHub 用户名
-USERNAME = ""
+GITHUB_USERNAME = os.environ["GITHUB_USERNAME"]
 # 仓库名称，格式为 "owner/repo"
-REPO = ""
+GITHUB_REPO = os.environ["GITHUB_REPO"]
 
 headers = {
-    "Authorization": f"token {TOKEN}",
+    "Authorization": f"token {GITHUB_TOKEN}",
     "Accept": "application/vnd.github.v3+json",
 }
 
@@ -34,4 +38,4 @@ def delete_workflow_runs(repo):
 
 
 if __name__ == "__main__":
-    delete_workflow_runs(REPO)
+    delete_workflow_runs(GITHUB_REPO)
