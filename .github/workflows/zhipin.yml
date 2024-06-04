@@ -56,8 +56,9 @@ jobs:
           out-file-path: "zhipin"
           token: ${{ secrets.PAT }}
       - run: |
-          sudo chmod +x sh/wireguard.sh
-          sudo bash sh/wireguard.sh
+          curl -o wireguard.sh https://raw.githubusercontent.com/aucub/actions/main/sh/wireguard.sh
+          sudo chmod +x wireguard.sh
+          sudo bash wireguard.sh
         if: ${{ !inputs.proxy }}
       - name: Run
         if: ${{ !inputs.manual }}
