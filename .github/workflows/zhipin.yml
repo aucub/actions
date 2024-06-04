@@ -1,0 +1,107 @@
+name: zhipin
+
+on:
+  schedule:
+    - cron: "0 0,4,8,12,16,20 * * *"
+  workflow_dispatch:
+    inputs:
+      proxy:
+        description: "Use proxy"
+        required: false
+        default: ""
+        type: string
+      manual:
+        description: "Use manual"
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REPOSITORY: "no-job"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: "${{ github.actor }}/${{ env.REPOSITORY }}"
+          token: ${{ secrets.PAT }}
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk fonts-noto-cjk-extra language-pack-zh-hans
+          sudo locale-gen zh_CN.UTF-8
+          sudo update-locale LANG=zh_CN.UTF-8
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - name: Install dependencies
+        run: |
+          uv venv
+          source .venv/bin/activate
+          uv pip install --upgrade pip wheel setuptools websocket-client
+          cd zhipin
+          uv pip install -r requirements.txt --upgrade
+      - name: Install Chrome
+        run: |
+          sudo apt install google-chrome-stable
+      - uses: robinraju/release-downloader@v1.10
+        continue-on-error: true
+        with:
+          repository: "${{ github.actor }}/${{ env.REPOSITORY }}"
+          tag: "zhipin"
+          fileName: "*.json"
+          out-file-path: "zhipin"
+          token: ${{ secrets.PAT }}
+      - run: |
+          sudo chmod +x sh/wireguard.sh
+          sudo bash sh/wireguard.sh
+        if: ${{ !inputs.proxy }}
+      - name: Run
+        if: ${{ !inputs.manual }}
+        env:
+          STATE: ${{ vars.STATE }}
+          CONFIG_URL: ${{ vars.CONFIG_URL }}
+          MYSQL_URL: ${{ secrets.MYSQL_URL }}
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+          PROXY: ${{ inputs.proxy }}
+          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SAVED_COOKIES: ${{ secrets.SAVED_COOKIES }}
+        run: |
+          source .venv/bin/activate
+          cd zhipin
+          python zhipinDP.py
+      - name: Run manual
+        if: ${{ inputs.manual }}
+        env:
+          MYSQL_URL: ${{ secrets.MYSQL_URL }}
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+          PROXY: ${{ inputs.proxy }}
+          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SAVED_COOKIES: ${{ secrets.SAVED_COOKIES }}
+        run: |
+          source .venv/bin/activate
+          cd zhipin
+          curl -sSf https://sshx.io/get | sh -s run
+      - uses: actions/upload-artifact@v4
+        if: ${{ !inputs.manual }}
+        with:
+          path: |
+            zhipin/*.txt
+            zhipin/*.log
+            zhipin/*.json
+            zhipin/*/*.jsonl
+      - uses: ncipollo/release-action@v1
+        if: ${{ !inputs.manual }}
+        with:
+          repo: ${{ env.REPOSITORY }}
+          artifacts: "zhipin/*.json"
+          allowUpdates: true
+          replacesArtifacts: true
+          tag: zhipin
+          prerelease: true
+          token: ${{ secrets.PAT }}
