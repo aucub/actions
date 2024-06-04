@@ -66,11 +66,7 @@ jobs:
           STATE: ${{ vars.STATE }}
           CONFIG_URL: ${{ vars.CONFIG_URL }}
           MYSQL_URL: ${{ secrets.MYSQL_URL }}
-          MONGO_URL: ${{ secrets.MONGO_URL }}
           PROXY: ${{ inputs.proxy }}
-          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          SAVED_COOKIES: ${{ secrets.SAVED_COOKIES }}
         run: |
           source .venv/bin/activate
           cd zhipin
@@ -79,11 +75,7 @@ jobs:
         if: ${{ inputs.manual }}
         env:
           MYSQL_URL: ${{ secrets.MYSQL_URL }}
-          MONGO_URL: ${{ secrets.MONGO_URL }}
           PROXY: ${{ inputs.proxy }}
-          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          SAVED_COOKIES: ${{ secrets.SAVED_COOKIES }}
         run: |
           source .venv/bin/activate
           cd zhipin
