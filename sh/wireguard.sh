@@ -4,6 +4,8 @@
 sudo apt-get update
 sudo apt-get install -y curl wireguard resolvconf
 
+curl ifconfig.me
+
 # 下载并配置订阅文件
 SUBSCRIPTION_URL="https://warp-clash-api-e5ga.onrender.com/api/wireguard?best=false&randomName=true&proxyFormat=full&ipv6=false"
 wget $SUBSCRIPTION_URL -O ~/wg0.conf
@@ -48,5 +50,4 @@ sudo systemctl daemon-reload
 sudo systemctl enable wg-quick@wg0
 sudo systemctl start wg-quick@wg0
 
-# 检查WireGuard状态
 curl ifconfig.me

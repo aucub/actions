@@ -2,7 +2,7 @@ name: zhipin
 
 on:
   schedule:
-    - cron: "0 0,4,8,12,16,20 * * *"
+    - cron: "0 0,6,12,18 * * *"
   workflow_dispatch:
     inputs:
       proxy:
