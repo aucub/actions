@@ -60,6 +60,12 @@ jobs:
           sudo chmod +x wireguard.sh
           sudo bash wireguard.sh
         if: ${{ !inputs.proxy }}
+      - uses: mdgreenwald/mozilla-sops-action@v1
+      - run: |
+          cd zhipin
+          sops -d config.toml.enc > config.toml
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
       - name: Run
         continue-on-error: true
         if: ${{ !inputs.manual }}
