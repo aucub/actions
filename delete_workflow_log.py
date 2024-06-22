@@ -1,5 +1,5 @@
 import os
-import requests
+import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,14 +21,14 @@ def delete_workflow_runs(repo):
     while True:
         # 获取 Workflow 运行记录
         url = f"https://api.github.com/repos/{repo}/actions/runs"
-        response = requests.get(url, headers=headers)
+        response = httpx.get(url, headers=headers)
         runs = response.json().get("workflow_runs", [])
         if len(runs) == 0:
             break
         for run in runs:
             run_id = run["id"]
             delete_url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}"
-            delete_response = requests.delete(delete_url, headers=headers)
+            delete_response = httpx.delete(delete_url, headers=headers)
             if delete_response.status_code == 204:
                 print(f"Successfully deleted run {run_id}")
             else:
