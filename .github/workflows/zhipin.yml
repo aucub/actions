@@ -2,7 +2,7 @@ name: zhipin
 
 on:
   schedule:
-    - cron: "0 0,6,12,18 * * *"
+    - cron: "0 0,2,4,6,8,10,12,14,16,18,20,22 * * *"
   workflow_dispatch:
     inputs:
       proxy:
@@ -41,7 +41,7 @@ jobs:
         run: |
           uv venv
           source .venv/bin/activate
-          uv pip install --upgrade pip wheel setuptools websocket-client
+          uv pip install --upgrade pip
           cd zhipin
           uv pip install -r requirements.txt --upgrade
       - name: Install Chrome
@@ -80,6 +80,7 @@ jobs:
           cd zhipin
           python zhipinDP.py
       - name: Run manual
+        continue-on-error: true
         if: ${{ inputs.manual }}
         env:
           MYSQL_URL: ${{ secrets.MYSQL_URL }}
@@ -89,6 +90,7 @@ jobs:
           cd zhipin
           curl -sSf https://sshx.io/get | sh -s run
       - uses: actions/upload-artifact@v4
+        continue-on-error: true
         if: ${{ !inputs.manual }}
         with:
           path: |
@@ -97,6 +99,7 @@ jobs:
             zhipin/*.json
             zhipin/*/*.jsonl
       - uses: ncipollo/release-action@v1
+        continue-on-error: true
         if: ${{ !inputs.manual }}
         with:
           repo: ${{ env.REPOSITORY }}
