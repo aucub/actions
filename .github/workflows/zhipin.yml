@@ -90,8 +90,7 @@ jobs:
           cd zhipin
           curl -sSf https://sshx.io/get | sh -s run
       - uses: actions/upload-artifact@v4
-        continue-on-error: true
-        if: ${{ !inputs.manual }}
+        if: always()
         with:
           path: |
             zhipin/*.txt
@@ -99,8 +98,7 @@ jobs:
             zhipin/*.json
             zhipin/*/*.jsonl
       - uses: ncipollo/release-action@v1
-        continue-on-error: true
-        if: ${{ !inputs.manual }}
+        if: always()
         with:
           repo: ${{ env.REPOSITORY }}
           artifacts: "zhipin/*.json"
