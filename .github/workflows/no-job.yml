@@ -1,0 +1,47 @@
+name: no-job
+
+on:
+  schedule:
+    - cron: "0 0,4,8,12,16,20 * * *"
+  workflow_dispatch:
+
+env:
+  REPOSITORY: "no-job"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: "${{ github.actor }}/${{ env.REPOSITORY }}"
+          token: ${{ secrets.PAT }}
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk fonts-noto-cjk-extra language-pack-zh-hans google-chrome-stable
+          sudo locale-gen zh_CN.UTF-8
+          sudo update-locale LANG=zh_CN.UTF-8
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - run: |
+          uv venv
+          source .venv/bin/activate
+          uv pip install --upgrade pip
+          uv pip install -r requirements.txt --upgrade
+      - run: |
+          curl -o wireguard.sh https://raw.githubusercontent.com/aucub/actions/main/scripts/wireguard.sh
+          sudo chmod +x wireguard.sh
+          sudo bash wireguard.sh
+      - uses: mdgreenwald/mozilla-sops-action@v1
+      - run: sops -d config.toml.enc > config.toml
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+      - env:
+          CONFIG_URL: ${{ vars.CONFIG_URL }}
+          MYSQL_URL: ${{ secrets.MYSQL_URL }}
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+        run: |
+          source .venv/bin/activate
+          python zhipin_drission_page.py
