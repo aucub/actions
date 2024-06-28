@@ -3,8 +3,6 @@ import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
-os.environ["all_proxy"] = ""
-os.environ["ALL_PROXY"] = ""
 
 # GitHub 个人访问令牌
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
