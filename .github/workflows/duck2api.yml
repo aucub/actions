@@ -1,0 +1,18 @@
+name: Deploy duck2api
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DUCK2API }}
+on:
+  schedule:
+    - cron: "0 18 * * 3"
+  workflow_dispatch:
+
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: "aurora-develop/Duck2api"
+      - run: npm install --global vercel@latest
+      - run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
