@@ -8,12 +8,11 @@ load_dotenv()
 github_token = os.environ["GITHUB_TOKEN"]
 # GitHub 用户名
 github_username = os.environ["GITHUB_USERNAME"]
-# 仓库名称，格式为 "owner/repo"
+# 仓库名称
 github_repo_list = [
     "actions",
     "nix-config",
     "tasteless",
-    "aucub",
     "WindowsPE",
     "build-nixos-iso",
     "ampg",
@@ -29,7 +28,7 @@ def delete_workflow_runs(repo):
     error_count = 0
     while error_count < 3:
         # 获取 Workflow 运行记录
-        url = f"https://api.github.com/repos/{repo}/actions/runs"
+        url = f"https://api.github.com/repos/{repo}/actions/runs?status=completed"
         response = requests.get(url, headers=headers)
         runs = response.json().get("workflow_runs", [])
         if len(runs) == 0:
