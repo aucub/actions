@@ -1,4 +1,4 @@
-name: Export MongoDB Data
+name: zpgeek_job_detail
 
 on:
   workflow_dispatch:
@@ -7,6 +7,7 @@ jobs:
   export-mongo:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT }}
