@@ -2,7 +2,7 @@ name: no-job
 
 on:
   schedule:
-    - cron: "0 0,5,9,14,19 * * *"
+    - cron: "0 0,8,16 * * *"
   workflow_dispatch:
 
 env:
