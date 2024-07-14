@@ -1,0 +1,47 @@
+name: zpgeek_job_joblist
+
+on:
+  workflow_dispatch:
+
+jobs:
+  export-mongo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }}
+          repository: "${{ github.actor }}/zpgeek_job_joblist"
+          fetch-depth: 0
+          path: "zpgeek_job_joblist"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y gnupg curl
+          curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+          echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-org
+      - env:
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+        run: mongoexport --uri=$MONGO_URL --db="zpgeek_job" --collection="joblist" --out="export.jsonl" --quiet
+      - run: python zpgeek_job_joblist.py
+      - run: |
+          cd zpgeek_job_joblist
+          git add .
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          repository: zpgeek_job_joblist
+          commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+          commit_options: "--quiet"
+      - run: mv export.jsonl mongo-joblist-$(date +%Y-%m-%d).jsonl
+      - uses: ncipollo/release-action@v1
+        with:
+          repo: "no-job"
+          artifacts: "*.jsonl"
+          allowUpdates: true
+          tag: mongo
+          prerelease: true
+          token: ${{ secrets.PAT }}
