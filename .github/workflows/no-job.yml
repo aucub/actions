@@ -1,0 +1,72 @@
+name: no-job
+
+on:
+  schedule:
+    - cron: "0 0,6,12,18 * * *"
+  workflow_dispatch:
+
+env:
+  REPOSITORY: "no-job"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: "${{ github.actor }}/${{ env.REPOSITORY }}"
+          token: ${{ secrets.PAT }}
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk fonts-noto-cjk-extra language-pack-zh-hans google-chrome-stable unzip curl
+          sudo locale-gen zh_CN.UTF-8
+          sudo update-locale LANG=zh_CN.UTF-8
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - run: |
+          uv venv
+          source .venv/bin/activate
+          uv pip install --upgrade pip
+          uv pip install -r requirements.txt --upgrade
+      - uses: robinraju/release-downloader@v1
+        continue-on-error: true
+        with:
+          repository: "${{ github.actor }}/${{ env.REPOSITORY }}"
+          tag: "zhipin"
+          fileName: "*.json"
+          token: ${{ secrets.PAT }}
+      - uses: mdgreenwald/mozilla-sops-action@v1
+      - run: sops -d config.toml.enc > config.toml
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+      - run: |
+          curl ifconfig.me
+          wget https://github.com/bepass-org/warp-plus/releases/download/v1.2.3/warp-plus_linux-amd64.zip
+          sudo unzip warp-plus_linux-amd64.zip -d /opt/warp-plus
+          sudo systemd-run --no-ask-password --unit=warp-plus /opt/warp-plus/warp-plus --tun-experimental
+          sleep 12
+          systemctl status warp-plus.service
+          curl ifconfig.me
+      - env:
+          MYSQL_URL: ${{ secrets.MYSQL_URL }}
+          MONGO_URL: ${{ secrets.MONGO_URL }}
+        continue-on-error: true
+        run: |
+          source .venv/bin/activate
+          python zhipin_drission_page.py
+      - uses: actions/upload-artifact@v4
+        with:
+          path: |
+            zhipin/*.log
+            zhipin/*.json
+      - uses: ncipollo/release-action@v1
+        with:
+          repo: ${{ env.REPOSITORY }}
+          artifacts: "*.json"
+          allowUpdates: true
+          replacesArtifacts: true
+          tag: zhipin
+          prerelease: true
+          token: ${{ secrets.PAT }}
