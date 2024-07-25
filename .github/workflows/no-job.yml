@@ -18,7 +18,7 @@ jobs:
           token: ${{ secrets.PAT }}
       - run: |
           sudo apt-get update
-          sudo apt-get install -y fonts-noto-cjk fonts-noto-cjk-extra language-pack-zh-hans google-chrome-stable unzip curl
+          sudo apt-get install -y fonts-noto-cjk fonts-noto-cjk-extra language-pack-zh-hans google-chrome-stable
           sudo locale-gen zh_CN.UTF-8
           sudo update-locale LANG=zh_CN.UTF-8
           curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -41,26 +41,13 @@ jobs:
       - run: sops -d config.toml.enc > config.toml
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
-      - run: |
-          wget https://github.com/MetaCubeX/mihomo/releases/download/Prerelease-Alpha/mihomo-linux-amd64-alpha-cc7823d.deb
-          sudo dpkg -i mihomo-linux-amd64-alpha-cc7823d.deb
-          sudo apt-get install -f
-          curl -o config.yaml $MIHOMO_CONFIG
-          sed -i 's/mode: Rule/mode: Global/' config.yaml
-          sudo cp config.yaml /etc/mihomo
-        env:
-          MIHOMO_CONFIG: ${{ secrets.MIHOMO_CONFIG }}
-      - run: |
-          sudo systemd-run --no-ask-password --unit=mihomo-proxy mihomo -d /etc/mihomo
-          sleep 12
-          systemctl status mihomo-proxy.service
       - env:
           MYSQL_URL: ${{ secrets.MYSQL_URL }}
           MONGO_URL: ${{ secrets.MONGO_URL }}
         continue-on-error: true
         run: |
           source .venv/bin/activate
-          PROXY="http://127.0.0.1:7890" python zhipin_drission_page.py
+          PROXY="" python zhipin_drission_page.py
       - uses: actions/upload-artifact@v4
         with:
           path: |
