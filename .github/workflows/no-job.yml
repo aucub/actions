@@ -18,13 +18,14 @@ jobs:
           token: ${{ secrets.PAT }}
       - run: |
           sudo apt-get update
-          sudo apt-get install -y fonts-noto-cjk fonts-noto-cjk-extra language-pack-zh-hans google-chrome-stable
+          sudo apt-get install -y unzip curl fonts-noto-cjk fonts-noto-cjk-extra language-pack-zh-hans google-chrome-stable xvfb
+          Xvfb :99 -screen 0 1920x1080x24 &
           sudo locale-gen zh_CN.UTF-8
           sudo update-locale LANG=zh_CN.UTF-8
           curl -LsSf https://astral.sh/uv/install.sh | sh
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.12
+          python-version: 3.11
       - run: |
           uv venv
           source .venv/bin/activate
@@ -44,21 +45,22 @@ jobs:
       - run: |
           wget https://github.com/bepass-org/warp-plus/releases/download/v1.2.3/warp-plus_linux-amd64.zip
           sudo unzip warp-plus_linux-amd64.zip -d /opt/warp-plus
-          sudo systemd-run --no-ask-password --uid=0 --unit=warp-plus /opt/warp-plus/warp-plus --tun-experimental
+          sudo systemd-run --no-ask-password --uid=0 --unit=warp-plus /opt/warp-plus/warp-plus --scan
           sleep 12
           systemctl status warp-plus.service
       - env:
           MYSQL_URL: ${{ secrets.MYSQL_URL }}
           MONGO_URL: ${{ secrets.MONGO_URL }}
+          DISPLAY: :99
         continue-on-error: true
         run: |
           source .venv/bin/activate
-          python zhipin_drission_page.py
+          PROXY="http://127.0.0.1:8086" python zhipin_drission_page.py
       - uses: actions/upload-artifact@v4
         with:
           path: |
-            zhipin/*.log
-            zhipin/*.json
+            *.log
+            *.json
       - uses: ncipollo/release-action@v1
         with:
           repo: ${{ env.REPOSITORY }}
