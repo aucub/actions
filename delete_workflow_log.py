@@ -12,10 +12,8 @@ github_username = os.environ["GITHUB_USERNAME"]
 github_repo_list = [
     "actions",
     "nix-config",
-    "tasteless",
     "WindowsPE",
     "build-nixos-iso",
-    "ampg",
 ]
 
 headers = {
