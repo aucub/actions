@@ -42,20 +42,25 @@ jobs:
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
       - run: |
-          curl ifconfig.me
-          wget https://github.com/bepass-org/warp-plus/releases/download/v1.2.3/warp-plus_linux-amd64.zip
-          sudo unzip warp-plus_linux-amd64.zip -d /opt/warp-plus
-          sudo systemd-run --no-ask-password --unit=warp-plus /opt/warp-plus/warp-plus --tun-experimental --gool --scan --dns 223.5.5.5 --endpoint 162.159.195.196:7152
+          wget https://github.com/MetaCubeX/mihomo/releases/download/Prerelease-Alpha/mihomo-linux-amd64-alpha-cc7823d.deb
+          sudo dpkg -i mihomo-linux-amd64-alpha-cc7823d.deb
+          sudo apt-get install -f
+          curl -o config.yaml $MIHOMO_CONFIG
+          sed -i 's/mode: Rule/mode: Global/' config.yaml
+          sudo cp config.yaml /etc/mihomo
+        env:
+          MIHOMO_CONFIG: ${{ secrets.MIHOMO_CONFIG }}
+      - run: |
+          sudo systemd-run --no-ask-password --unit=mihomo-proxy mihomo -d /etc/mihomo
           sleep 12
-          systemctl status warp-plus.service
-          curl ifconfig.me
+          systemctl status mihomo-proxy.service
       - env:
           MYSQL_URL: ${{ secrets.MYSQL_URL }}
           MONGO_URL: ${{ secrets.MONGO_URL }}
         continue-on-error: true
         run: |
           source .venv/bin/activate
-          python zhipin_drission_page.py
+          PROXY="http://127.0.0.1:7890" python zhipin_drission_page.py
       - uses: actions/upload-artifact@v4
         with:
           path: |
