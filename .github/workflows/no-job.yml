@@ -41,25 +41,13 @@ jobs:
       - run: sops -d config.toml.enc > config.toml
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
-      # - run: |
-      #     curl ifconfig.me
-      #     wget https://github.com/bepass-org/warp-plus/releases/download/v1.2.3/warp-plus_linux-amd64.zip
-      #     sudo unzip warp-plus_linux-amd64.zip -d /opt/warp-plus
-      #     sudo systemd-run --no-ask-password --unit=warp-plus /opt/warp-plus/warp-plus --tun-experimental
-      #     sleep 12
-      #     systemctl status warp-plus.service
-      #     curl ifconfig.me
-      - run: | 
-          echo $XRAY_CONFIG > xray.json
-          sudo mv xray.json /etc/xray-tunl.json
-        env:
-          XRAY_CONFIG: ${{ secrets.XRAY_CONFIG }}
       - run: |
           curl ifconfig.me
-          sudo bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
-          sudo systemd-run --no-ask-password --unit=xray-tunl xray -c /etc/xray-tunl.json
+          wget https://github.com/bepass-org/warp-plus/releases/download/v1.2.3/warp-plus_linux-amd64.zip
+          sudo unzip warp-plus_linux-amd64.zip -d /opt/warp-plus
+          sudo systemd-run --no-ask-password --unit=warp-plus /opt/warp-plus/warp-plus --tun-experimental --gool --scan --dns 223.5.5.5 --endpoint 162.159.195.196:7152
           sleep 12
-          systemctl status xray-tunl.service
+          systemctl status warp-plus.service
           curl ifconfig.me
       - env:
           MYSQL_URL: ${{ secrets.MYSQL_URL }}
@@ -67,7 +55,7 @@ jobs:
         continue-on-error: true
         run: |
           source .venv/bin/activate
-          PROXY="http://localhost:7897" python zhipin_drission_page.py
+          python zhipin_drission_page.py
       - uses: actions/upload-artifact@v4
         with:
           path: |
