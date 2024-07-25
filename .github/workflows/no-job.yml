@@ -41,13 +41,19 @@ jobs:
       - run: sops -d config.toml.enc > config.toml
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+      - run: |
+          wget https://github.com/bepass-org/warp-plus/releases/download/v1.2.3/warp-plus_linux-amd64.zip
+          sudo unzip warp-plus_linux-amd64.zip -d /opt/warp-plus
+          sudo systemd-run --no-ask-password --uid=0 --unit=warp-plus /opt/warp-plus/warp-plus --tun-experimental
+          sleep 12
+          systemctl status warp-plus.service
       - env:
           MYSQL_URL: ${{ secrets.MYSQL_URL }}
           MONGO_URL: ${{ secrets.MONGO_URL }}
         continue-on-error: true
         run: |
           source .venv/bin/activate
-          PROXY="" python zhipin_drission_page.py
+          python zhipin_drission_page.py
       - uses: actions/upload-artifact@v4
         with:
           path: |
