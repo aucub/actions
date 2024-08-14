@@ -45,7 +45,7 @@ jobs:
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
       - run: |
-          wget https://github.com/bepass-org/warp-plus/releases/download/v1.2.3/warp-plus_linux-amd64.zip
+          wget https://github.com/bepass-org/warp-plus/releases/download/v1.2.4/warp-plus_linux-amd64.zip
           sudo unzip warp-plus_linux-amd64.zip -d /opt/warp-plus
           sudo systemd-run --no-ask-password --uid=0 --unit=warp-plus /opt/warp-plus/warp-plus --scan
           sleep 12
@@ -61,6 +61,7 @@ jobs:
           path: |
             *.log
             *.json
+            tmp/
       - uses: ncipollo/release-action@v1
         with:
           repo: ${{ env.REPOSITORY }}
