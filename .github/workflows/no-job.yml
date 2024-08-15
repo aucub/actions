@@ -2,7 +2,7 @@ name: no-job
 
 on:
   schedule:
-    - cron: "0 0,6,12,18 * * *"
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 env:
@@ -10,22 +10,29 @@ env:
 
 jobs:
   test:
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        version: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           repository: "${{ github.actor }}/${{ env.REPOSITORY }}"
           token: ${{ secrets.PAT }}
+      - uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: unzip curl fonts-noto-cjk fonts-noto-cjk-extra language-pack-zh-hans google-chrome-stable xvfb
+          version: 1.0
       - run: |
-          sudo apt-get update
-          sudo apt-get install -y unzip curl fonts-noto-cjk fonts-noto-cjk-extra language-pack-zh-hans google-chrome-stable xvfb
           Xvfb :99 -screen 0 1920x1080x24 &
           sudo locale-gen zh_CN.UTF-8
           sudo update-locale LANG=zh_CN.UTF-8
-          curl -LsSf https://astral.sh/uv/install.sh | sh
       - uses: actions/setup-python@v5
         with:
           python-version: 3.11
+      - uses: hynek/setup-cached-uv@v2
       - run: |
           uv venv
           source .venv/bin/activate
@@ -58,6 +65,7 @@ jobs:
           PROXY="http://127.0.0.1:8086" python zhipin_drission_page.py
       - uses: actions/upload-artifact@v4
         with:
+          name: artifact-${{ matrix.version }}
           path: |
             *.log
             *.json
