@@ -1,0 +1,20 @@
+name: Deploy v2ray-worker
+
+on:
+  schedule:
+    - cron: "0 18 * * 3"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: "vfarid/v2ray-worker"
+      - run: sed -i 's/KV_NAME/e5cadededf7d4d08a48dab4fe060ee0a/g' wrangler.toml
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --name v2ray-worker

@@ -51,7 +51,6 @@ jobs:
           sops -d config.toml.enc > config.toml
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
-      - run: curl -sSf https://sshx.io/get | sh -s run
       - run: |
           wget https://github.com/daeuniverse/dae/releases/download/v0.8.0rc1/dae-linux-x86_64.zip
           sudo unzip dae-linux-x86_64.zip -d /usr/bin
