@@ -14,13 +14,46 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        version: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    runs-on: macos-latest
+        version:
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+          ]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           repository: "${{ github.actor }}/${{ env.REPOSITORY }}"
           token: ${{ secrets.PAT }}
+      - uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: unzip curl fonts-noto-cjk fonts-noto-cjk-extra language-pack-zh-hans xvfb
+          version: 1.0
+      - run: |
+          sudo locale-gen zh_CN.UTF-8
+          sudo update-locale LANG=zh_CN.UTF-8
       - uses: browser-actions/setup-chrome@v1
       - uses: actions/setup-python@v5
         with:
@@ -44,10 +77,21 @@ jobs:
           sops -d config.toml.enc > config.toml
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
-      - continue-on-error: true
+      - run: |
+          wget https://github.com/bepass-org/warp-plus/releases/download/v1.2.4/warp-plus_linux-amd64.zip
+          sudo unzip warp-plus_linux-amd64.zip -d /opt/warp-plus
+          sudo systemd-run --no-ask-password --uid=0 --unit=warp-plus /opt/warp-plus/warp-plus --scan
+          sleep 10
+          systemctl status warp-plus.service
+      - env:
+          PROXY: ${{ secrets.PROXY }}
+        continue-on-error: true
         run: |
           source .venv/bin/activate
-          python zhipin_drission_page.py
+          if [ -z "$PROXY" ]; then
+            PROXY="http://127.0.0.1:8086"
+          fi
+          xvfb-run --server-args="-screen 0 1920x1080x24" python zhipin_drission_page.py
       - uses: actions/upload-artifact@v4
         with:
           name: artifact-${{ matrix.version }}
