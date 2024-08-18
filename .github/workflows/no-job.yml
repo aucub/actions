@@ -23,8 +23,12 @@ jobs:
           token: ${{ secrets.PAT }}
       - uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: unzip curl fonts-noto-cjk fonts-noto-cjk-extra google-chrome-stable
+          packages: unzip curl fonts-noto-cjk fonts-noto-cjk-extra language-pack-zh-hans google-chrome-stable xvfb
           version: 1.0
+      - run: |
+          Xvfb :99 -screen 0 1920x1080x24 &
+          sudo locale-gen zh_CN.UTF-8
+          sudo update-locale LANG=zh_CN.UTF-8
       - uses: actions/setup-python@v5
         with:
           python-version: 3.11
@@ -48,25 +52,20 @@ jobs:
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
       - run: |
-          wget https://github.com/daeuniverse/dae/releases/download/v0.8.0rc1/dae-linux-x86_64.zip
-          sudo unzip dae-linux-x86_64.zip -d /usr/bin
-          sudo mv /usr/bin/dae-linux-x86_64 /usr/bin/dae
-          sudo mv /usr/bin/dae.service /etc/systemd/system/
-          sudo mkdir -p /etc/dae
-          sudo mv /usr/bin/geoip.dat /etc/dae/
-          sudo mv /usr/bin/geosite.dat /etc/dae/
-          sudo curl -L -o /etc/dae/config.dae https://github.com/aucub/actions/raw/main/config.dae
-          echo "subscription { '$(echo $SUBSCRIPTION_LINK)' }" | sudo tee /etc/dae/extra-config.dae
-          sudo chmod 600 /etc/dae/config.dae
-          sudo chmod 600 /etc/dae/extra-config.dae
-          sudo systemctl enable --now dae.service
-          sleep 25
-        env:
-          SUBSCRIPTION_LINK: ${{ secrets.SUBSCRIPTION_LINK }}
-      - run: systemctl status dae.service
-      - continue-on-error: true
+          wget https://github.com/bepass-org/warp-plus/releases/download/v1.2.4/warp-plus_linux-amd64.zip
+          sudo unzip warp-plus_linux-amd64.zip -d /opt/warp-plus
+          sudo systemd-run --no-ask-password --uid=0 --unit=warp-plus /opt/warp-plus/warp-plus --scan
+          sleep 12
+          systemctl status warp-plus.service
+      - env:
+          DISPLAY: :99
+          PROXY: ${{ secrets.PROXY }}
+        continue-on-error: true
         run: |
           source .venv/bin/activate
+          if [ -z "$PROXY" ]; then
+            PROXY="http://127.0.0.1:8086"
+          fi
           python zhipin_drission_page.py
       - uses: actions/upload-artifact@v4
         with:
