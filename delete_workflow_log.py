@@ -25,7 +25,6 @@ headers = {
 def delete_workflow_runs(repo):
     error_count = 0
     while error_count < 3:
-        # 获取 Workflow 运行记录
         url = f"https://api.github.com/repos/{repo}/actions/runs?status=completed"
         response = requests.get(url, headers=headers)
         runs = response.json().get("workflow_runs", [])
