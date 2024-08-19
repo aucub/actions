@@ -2,7 +2,7 @@ name: no-job
 
 on:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "0 */4 * * *"
   workflow_dispatch:
 
 env:
@@ -10,37 +10,6 @@ env:
 
 jobs:
   test:
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        version:
-          [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            19,
-            20,
-            21,
-            22,
-            23,
-          ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -89,12 +58,16 @@ jobs:
         run: |
           source .venv/bin/activate
           if [ -z "$PROXY" ]; then
-            PROXY="http://127.0.0.1:8086"
+            export PROXY="http://127.0.0.1:8086"
           fi
-          xvfb-run --server-args="-screen 0 1920x1080x24" python zhipin_drission_page.py
+          while true; do
+              xvfb-run --server-args="-screen 0 1920x1080x24" python zhipin_drission_page.py || true
+              sudo rm -rf /root/.cache/warp-plus
+              sudo systemctl restart warp-plus.service
+              sleep 10
+          done
       - uses: actions/upload-artifact@v4
         with:
-          name: artifact-${{ matrix.version }}
           path: |
             *.log
             *.json
