@@ -2,14 +2,14 @@ name: no-job
 
 on:
   schedule:
-    - cron: "0 */4 * * *"
+    - cron: "0 */2 * * *"
   workflow_dispatch:
 
 env:
   REPOSITORY: "no-job"
 
 jobs:
-  test:
+  execute:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,29 +42,37 @@ jobs:
           token: ${{ secrets.PAT }}
       - uses: mdgreenwald/mozilla-sops-action@v1
       - run: |
-          sops --input-type dotenv --output-type dotenv -d .env.enc > .env
-          sops -d config.toml.enc > config.toml
+          sops -d .encrypted.env > .env
+          sops -d .encrypted.config.yaml > config.yaml
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
       - run: |
           wget https://github.com/bepass-org/warp-plus/releases/download/v1.2.4/warp-plus_linux-amd64.zip
           sudo unzip warp-plus_linux-amd64.zip -d /opt/warp-plus
           sudo systemd-run --no-ask-password --uid=0 --unit=warp-plus /opt/warp-plus/warp-plus --scan
-          sleep 10
+          sleep 15
           systemctl status warp-plus.service
-      - env:
-          PROXY: ${{ secrets.PROXY }}
+      - timeout-minutes: 320
         continue-on-error: true
+        env:
+          PROXY: ${{ secrets.PROXY }}
         run: |
           source .venv/bin/activate
           if [ -z "$PROXY" ]; then
             export PROXY="http://127.0.0.1:8086"
+            export LOOP_EXECUTION="true"
+          else
+            export LOOP_EXECUTION="false"
           fi
           while true; do
-              xvfb-run --server-args="-screen 0 1920x1080x24" python zhipin_drission_page.py || true
+            xvfb-run --server-args="-screen 0 1920x1080x24" python app.py +config=ci || true
+            if [ "$LOOP_EXECUTION" = "true" ]; then
               sudo rm -rf /root/.cache/warp-plus
               sudo systemctl restart warp-plus.service
-              sleep 10
+              sleep 30
+            else
+              break
+            fi
           done
       - uses: actions/upload-artifact@v4
         with:

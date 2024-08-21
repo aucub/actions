@@ -27,8 +27,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mongodb-org
       - env:
-          MONGO_URL: ${{ secrets.MONGO_URL }}
-        run: mongoexport --uri=$MONGO_URL --db="zpgeek_job" --collection="joblist" --out="export.jsonl" --quiet
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: mongoexport --uri=$MONGO_URI --db="zpgeek_job" --collection="joblist" --out="export.jsonl" --quiet
       - run: python zpgeek_job_joblist.py
       - run: |
           cd zpgeek_job_joblist
