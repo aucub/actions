@@ -2,8 +2,14 @@ name: no-job
 
 on:
   schedule:
-    - cron: "0 */1 * * *"
+    - cron: "0 * * * *"
   workflow_dispatch:
+    inputs:
+      sshx:
+        description: "sshx"
+        required: false
+        default: false
+        type: boolean
 
 env:
   REPOSITORY: "no-job"
@@ -52,7 +58,10 @@ jobs:
           sudo systemd-run --no-ask-password --uid=0 --unit=warp-plus /opt/warp-plus/warp-plus --scan
           sleep 15
           systemctl status warp-plus.service
+      - if: ${{ inputs.sshx }}
+        run: curl -sSf https://sshx.io/get | sh -s run
       - timeout-minutes: 320
+        if: ${{ !inputs.sshx }}
         continue-on-error: true
         env:
           PROXY: ${{ secrets.PROXY }}
