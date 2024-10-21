@@ -52,9 +52,12 @@ jobs:
           sops -d .encrypted.config.yaml > config.yaml
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
-      - uses: fscarmen/warp-on-actions@main
       - run: |
-          warp-cli --accept-tos mode proxy
+          wget https://github.com/bepass-org/warp-plus/releases/download/v1.2.4/warp-plus_linux-amd64.zip
+          sudo unzip warp-plus_linux-amd64.zip -d /opt/warp-plus
+          sudo systemd-run --no-ask-password --uid=0 --unit=warp-plus /opt/warp-plus/warp-plus --scan
+          sleep 15
+          systemctl status warp-plus.service
       - if: ${{ inputs.sshx }}
         run: curl -sSf https://sshx.io/get | sh -s run
       - timeout-minutes: 320
@@ -64,23 +67,19 @@ jobs:
           PROXY: ${{ secrets.PROXY }}
         run: |
           source .venv/bin/activate
-          curl -o iplist.txt https://raw.githubusercontent.com/freedomnet25500/clean-ip-warp-list/refs/heads/main/ip%20list
-          LOOP_EXECUTION=true
-          if [[ -n "$PROXY" ]]; then
-            LOOP_EXECUTION=false
-          else
-            export PROXY="socks5://127.0.0.1:40000"
-          fi
-          while IFS= read -r line; do
-            if [[ "$LOOP_EXECUTION" == "true" ]]; then
-              warp-cli --accept-tos tunnel endpoint set "$line"
+          if [ -z "$PROXY" ]; then
+            curl -o iplist.txt https://raw.githubusercontent.com/freedomnet25500/clean-ip-warp-list/refs/heads/main/ip%20list
+            export PROXY="http://127.0.0.1:8086"
+            while IFS= read -r line; do
+              xvfb-run --server-args="-screen 0 1920x1080x24" python app.py +config=ci || true
+              sudo systemctl stop warp-plus.service
+              sudo rm -rf /root/.cache/warp-plus
+              sudo systemd-run --no-ask-password --uid=0 --unit=warp-plus /opt/warp-plus/warp-plus --scan -e "$line"
               sleep 30
-            fi
-            xvfb-run --server-args="-screen 0 1920x1080x24" python app.py +config=ci || true
-            if [[ "$LOOP_EXECUTION" == "false" ]]; then
-              break
-            fi
-          done < "iplist.txt"
+            done < "iplist.txt"
+          else
+            xvfb-run --server-args="-screen 0 1920x1080x24" python app.py +config=ci
+          fi
       - uses: actions/upload-artifact@v4
         with:
           path: |
