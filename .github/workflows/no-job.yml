@@ -53,6 +53,8 @@ jobs:
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
       - uses: fscarmen/warp-on-actions@main
+      - run: |
+          warp-cli --accept-tos mode proxy
       - if: ${{ inputs.sshx }}
         run: curl -sSf https://sshx.io/get | sh -s run
       - timeout-minutes: 320
@@ -66,6 +68,8 @@ jobs:
           LOOP_EXECUTION=true
           if [[ -n "$PROXY" ]]; then
             LOOP_EXECUTION=false
+          else
+            export PROXY="socks5://127.0.0.1:40000"
           fi
           while IFS= read -r line; do
             if [[ "$LOOP_EXECUTION" == "true" ]]; then
