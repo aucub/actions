@@ -9,6 +9,16 @@ jobs:
   export-mongo:
     runs-on: ubuntu-latest
     steps:
+      - uses: AdityaGarg8/remove-unwanted-software@master
+        with:
+          remove-android: true
+          remove-dotnet: true
+          remove-haskell: true
+          remove-docker-images: true
+          remove-codeql: true
+          remove-large-packages: true
+          remove-cached-tools: true
+          remove-swapfile: true
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
         with:

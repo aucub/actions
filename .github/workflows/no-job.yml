@@ -52,12 +52,7 @@ jobs:
           sops -d .encrypted.config.yaml > config.yaml
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
-      - run: |
-          wget https://github.com/bepass-org/warp-plus/releases/download/v1.2.4/warp-plus_linux-amd64.zip
-          sudo unzip warp-plus_linux-amd64.zip -d /opt/warp-plus
-          sudo systemd-run --no-ask-password --uid=0 --unit=warp-plus /opt/warp-plus/warp-plus --scan
-          sleep 15
-          systemctl status warp-plus.service
+      - uses: fscarmen/warp-on-actions@main
       - if: ${{ inputs.sshx }}
         run: curl -sSf https://sshx.io/get | sh -s run
       - timeout-minutes: 320
@@ -67,22 +62,21 @@ jobs:
           PROXY: ${{ secrets.PROXY }}
         run: |
           source .venv/bin/activate
-          if [ -z "$PROXY" ]; then
-            export PROXY="http://127.0.0.1:8086"
-            export LOOP_EXECUTION="true"
-          else
-            export LOOP_EXECUTION="false"
+          curl -o iplist.txt https://raw.githubusercontent.com/freedomnet25500/clean-ip-warp-list/refs/heads/main/ip%20list
+          LOOP_EXECUTION=true
+          if [[ -n "$PROXY" ]]; then
+            LOOP_EXECUTION=false
           fi
-          while true; do
-            xvfb-run --server-args="-screen 0 1920x1080x24" python app.py +config=ci || true
-            if [ "$LOOP_EXECUTION" = "true" ]; then
-              sudo rm -rf /root/.cache/warp-plus
-              sudo systemctl restart warp-plus.service
+          while IFS= read -r line; do
+            if [[ "$LOOP_EXECUTION" == "true" ]]; then
+              warp-cli --accept-tos tunnel endpoint set "$line"
               sleep 30
-            else
+            fi
+            xvfb-run --server-args="-screen 0 1920x1080x24" python app.py +config=ci || true
+            if [[ "$LOOP_EXECUTION" == "false" ]]; then
               break
             fi
-          done
+          done < "iplist.txt"
       - uses: actions/upload-artifact@v4
         with:
           path: |
