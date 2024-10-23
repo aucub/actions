@@ -1,7 +1,8 @@
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import requests
 from dotenv import load_dotenv
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 load_dotenv()
 

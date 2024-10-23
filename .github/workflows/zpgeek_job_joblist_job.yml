@@ -1,4 +1,4 @@
-name: zpgeek_job_joblist
+name: zpgeek_job_joblist_job
 
 on:
   schedule:
@@ -23,9 +23,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT }}
-          repository: "${{ github.actor }}/zpgeek_job_joblist"
+          repository: "${{ github.actor }}/zpgeek_job_joblist_job"
           fetch-depth: 0
-          path: "zpgeek_job_joblist"
+          path: "zpgeek_job_joblist_job"
       - uses: actions/setup-python@v5
         with:
           python-version: 3.12
@@ -38,17 +38,16 @@ jobs:
           sudo apt-get install -y mongodb-org
       - env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
-        run: mongoexport --uri=$MONGO_URI --db="zpgeek_job" --collection="joblist" --out="export.jsonl" --quiet
-      - run: python zpgeek_job_joblist.py
+        run: mongoexport --uri=$MONGO_URI --db="zpgeek_job" --collection="joblist_job" --out="export.jsonl" --quiet
+      - run: python zpgeek_job_joblist_job.py
       - run: |
-          cd zpgeek_job_joblist
+          cd zpgeek_job_joblist_job
           git add .
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          repository: zpgeek_job_joblist
+          repository: zpgeek_job_joblist_job
           commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
-          commit_options: "--quiet"
-      - run: mv export.jsonl mongo-joblist-$(date +%Y-%m-%d).jsonl
+      - run: mv export.jsonl mongo-joblist_job-$(date +%Y-%m-%d).jsonl
       - uses: ncipollo/release-action@v1
         with:
           repo: "no-job"

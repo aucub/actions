@@ -14,13 +14,14 @@ def sanitize_filename(filename):
 with open("./export.jsonl", "r", encoding="utf-8") as file:
     for line in file:
         item = json.loads(line)
-        job_name = sanitize_filename(item["zpData"]["jobInfo"]["jobName"])
-        positionName = (
-            sanitize_filename(item["zpData"]["jobInfo"]["positionName"]) or "无分类"
-        )
-        brand_name = sanitize_filename(item["zpData"]["brandComInfo"]["brandName"])
+        city_name = sanitize_filename(item["cityName"]) or "未命名"
+        job_name = sanitize_filename(item["jobName"]) or "未命名"
+        brand_name = sanitize_filename(item["brandName"]) or "未命名"
         directory = os.path.join(
-            "zpgeek_job_detail", positionName, job_name, brand_name
+            "zpgeek_job_joblist_job",
+            city_name,
+            job_name,
+            brand_name,
         )
         os.makedirs(directory, exist_ok=True)
         # 删除_id字段

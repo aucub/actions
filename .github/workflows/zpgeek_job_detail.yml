@@ -47,7 +47,6 @@ jobs:
         with:
           repository: zpgeek_job_detail
           commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
-          commit_options: "--quiet"
       - run: mv export.jsonl mongo-$(date +%Y-%m-%d).jsonl
       - uses: ncipollo/release-action@v1
         with:
